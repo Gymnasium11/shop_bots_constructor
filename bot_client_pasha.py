@@ -2,6 +2,8 @@ from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 from database import read
+import telebot
+
 
 
 def run(token):
@@ -35,7 +37,6 @@ def run(token):
         text = "Каталог"
         rez = read('SELECT * FROM product WHERE id_shop=1')
         print(rez)
-
 
         rez = [('Honey',
                 'https://medrossii.ru/images/001/%D0%91%D0%B0%D1%88%D0%BA%D0%B8%D1%80%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BC'
@@ -109,8 +110,6 @@ def run(token):
             message_id=call.message.message_id,
             reply_markup=kb
         )
-
-
 
     @dp.message_handler()
     async def echo_message(msg: types.Message):

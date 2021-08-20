@@ -9,8 +9,20 @@ from config import TOKEN
 from messages import MESSAGES
 from telethon import TelegramClient
 from telethon.tl.functions.users import GetFullUserRequest
-from token_test import test_token
+import telebot
 import database
+
+
+
+
+def get_info(token):
+    try:
+        a = telebot.TeleBot(token).get_me()
+    except:
+        return False
+    return a.first_name, a.username
+
+
 
 # Создание экземпляров классов Bot и Dispatcher
 bot = Bot(token=TOKEN)
@@ -57,10 +69,15 @@ async def process_three_base_commands(message):
 
 @dp.message_handler(state=states.TwoStates.ADD_SHOP)
 async def process_add_shop_command(message):
-    # database.insert(f"INSERT INTO shops (token, admins) VALUES ('{token}', '{message.from_user.id}')")
+    token = message.text
+    first_name, username = get_info(token)
+    database.insert(f"INSERT INTO shops (name, nick_name, token, admins, rating, count_solled) VALUES ('{first_name}', '{username}' ,'{token}', '{message.from_user.id}', '{0}', '{0}')")
     await bot.send_message(message.from_user.id, MESSAGES['done'])
     await states.TwoStates.next()
 
 
 if __name__ == '__main__':
     executor.start_polling(dp)
+
+
+
