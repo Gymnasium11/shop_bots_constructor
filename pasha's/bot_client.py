@@ -3,6 +3,17 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 
 
+
+async def test(token):
+    bot = Bot(token=token)
+    bot.get_me()
+
+
+test('1991375151:AAFyjSRYIOA-myrWJEs02u2JuBAtzRzDQoQ')
+
+
+
+
 def run(token):
     bot = Bot(token=token)
     dp = Dispatcher(bot)
