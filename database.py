@@ -1,7 +1,7 @@
 import sqlite3
 
 
-def read_from_shop(request):
+def read(request):
     """на вход функции необходимо передать запрос на вставку"""
     try:
         sqlite_connection= sqlite3.connect('base.db', timeout=20)
@@ -22,7 +22,7 @@ def read_from_shop(request):
             print("Соединение с SQLite закрыто")
 
 
-def insert_in_shop(reaquest):
+def insert(reaquest):
     """на вход функции необходимо передать запрос на вставку"""
     try:
         sqlite_connection = sqlite3.connect('base.db')
@@ -50,6 +50,6 @@ def insert_in_shop(reaquest):
 
 
 if __name__ == "__main__":
-    # insert_in_shop("""INSERT INTO shop
+    # insert("""INSERT INTO shop
     #                           (name, token, admins, rating, count_solled, discreption)  VALUES  ("third", "this_is_token_1111", "admin3", 4.1, 1520, "third shop for test")""")
-    read_from_shop("SELECT * FROM shop")
+    read("SELECT * FROM shop")
