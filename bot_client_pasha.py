@@ -7,11 +7,6 @@ def run(token):
     bot = Bot(token=token)
     dp = Dispatcher(bot)
 
-    trash = [('Honey',
-              'https://medrossii.ru/images/001/%D0%91%D0%B0%D1%88%D0%BA%D0%B8%D1%80%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BC'
-              '%D0%B5%D0%B4.jpg'),
-             ('Milk', 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Milk_glass.jpg')]
-
     @dp.message_handler(commands=['start'])
     async def start(message):
         text = f'{message.from_user.first_name + " " + message.from_user.last_name}, добро' \
@@ -38,30 +33,37 @@ def run(token):
         # SELECT * FROM shops WHERE
 
         rez = [('Honey',
-                  'https://medrossii.ru/images/001/%D0%91%D0%B0%D1%88%D0%BA%D0%B8%D1%80%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BC'
-                  '%D0%B5%D0%B4.jpg', 1),
-                 ('Milk', 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Milk_glass.jpg', 2)]
+                'https://medrossii.ru/images/001/%D0%91%D0%B0%D1%88%D0%BA%D0%B8%D1%80%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BC'
+                '%D0%B5%D0%B4.jpg', 1),
+               ('Milk', 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Milk_glass.jpg', 2)]
 
-        for i in trash:
+        for i in rez:
             id = i[2]
             kb = types.InlineKeyboardMarkup()
-            kb.add(types.InlineKeyboardButton(callback_data=f'futher_{id}', text='Подробнее про знак'))
+            kb.add(types.InlineKeyboardButton(callback_data=f'further_{id}', text='Подробнее'))
             await message.answer_photo(i[1], caption=i[0], reply_markup=kb)
         await message.answer(text)
 
     @dp.message_handler(lambda message: message.text == '🛒Корзина')
     async def trash(message):
+        trash = [('Honey',
+                  'https://medrossii.ru/images/001/%D0%91%D0%B0%D1%88%D0%BA%D0%B8%D1%80%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BC'
+                  '%D0%B5%D0%B4.jpg'),
+                 ('Milk', 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Milk_glass.jpg')]
         text = ' Корзина' \
                '' \
                '\n|\n|\n|\n|\n| **жирный шрифт** *курсив*'
 
         await message.answer(text, parse_mode='Markdown')
 
-        kb = types.InlineKeyboardMarkup(row_width=2)
-        kb.add(types.InlineKeyboardButton(callback_data='nothing', text='Подробнее про знак'))
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(callback_data=f'further_{id}', text='Подробнее'))
         kb.add(types.InlineKeyboardButton(callback_data='nothing', text='назад'))
 
         for i in trash:
+            kb = types.InlineKeyboardMarkup()
+            kb.add(types.InlineKeyboardButton(callback_data=f'further_{id}', text='Подробнее'))
+            kb.add(types.InlineKeyboardButton(callback_data='nothing', text='назад'))
             await message.answer_photo(i[1], caption=i[0], reply_markup=kb)
 
     @dp.message_handler(lambda message: message.text == '🎪О магазине')
@@ -81,18 +83,32 @@ def run(token):
         text = "По всем вопросам обращайтесь к @Uxuxd"
         await message.answer(text)
 
+    @dp.callback_query_handler(lambda call: call.data.startswith('further'))
+    async def update(call):
+        d = call.data
+        id = int(d.split('_')[1])
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(callback_data=f'fromfurther_{id}', text='Назад'))
+        await bot.edit_message_caption(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            reply_markup=kb
+        )
 
-    @dp.callback_query_handler()
-    async def update(query):
-        print(query)
-
-
+    @dp.callback_query_handler(lambda call: call.data.startswith('fromfurther'))
+    async def update(call):
+        d = call.data
+        id = int(d.split('_')[1])
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(callback_data=f'further_{id}', text='Подробнее'))
+        await bot.edit_message_caption(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            reply_markup=kb
+        )
 
     @dp.message_handler()
     async def echo_message(msg: types.Message):
         await bot.send_message(msg.from_user.id, msg.text)
-
-
-
 
     executor.start_polling(dp)
