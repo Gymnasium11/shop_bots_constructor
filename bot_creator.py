@@ -2,6 +2,7 @@ from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram import executor
 from aiogram.dispatcher.filters import BoundFilter
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 import states
 import keyboards
@@ -23,13 +24,23 @@ async def process_start_command(message):
 
 @dp.message_handler(lambda message: [message.text] in keyboards.bot_creator_keyboard['keyboard'])
 async def process_three_base_commands(message):
-    await bot.send_message(message.from_user.id, MESSAGES[message.text], reply_markup=keyboards.ReplyKeyboardRemove())
+    await bot.send_message(message.from_user.id, MESSAGES[message.text])
     if message.text == 'Добавить магазин':
-        states.ThreeStates.ADD_SHOP.set()
+        await states.TwoStates.ADD_SHOP.set()
+    elif message.text == 'Мои магазины':
+        await states.TwoStates.ADD_SHOP.set()
 
-@dp.message_handler(lambda message: [message.text] in keyboards.bot_creator_keyboard['keyboard'])
-async def process_three_base_commands(message):
+@dp.message_handler(state=states.ThreeStates.ADD_SHOP)
+async def process_add_shop_command(message):
+    token = message.text
+    await bot.send_message(message.from_user.id, MESSAGES['done'])
+    await states.TwoStates.next()
 
+
+@dp.message_handler(state=states.TwoStates.MY_SHOPS)
+async def process_my_shops_command(message):
+    await bot.send_message(message.from_user.id, MESSAGES['done'])
+    await states.TwoStates.next()
 
 
 if __name__ == '__main__':

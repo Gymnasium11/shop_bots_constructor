@@ -1,6 +1,6 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
-class ThreeStates(StatesGroup):
-    MY_SHOPES = State()
+class TwoStates(StatesGroup):
+    MY_SHOPS = State()
     ADD_SHOP = State()
