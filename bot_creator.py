@@ -9,6 +9,8 @@ from config import TOKEN
 from messages import MESSAGES
 from telethon import TelegramClient
 from telethon.tl.functions.users import GetFullUserRequest
+from token_test import test_token
+import database
 
 # Создание экземпляров классов Bot и Dispatcher
 bot = Bot(token=TOKEN)
@@ -41,7 +43,7 @@ async def process_start_command(message):
 async def process_set_admin_command(message):
     args = [arg.strip('@ ') for arg in message.text.split()[1:]]
     if await is_bot(args[0]) and not await is_bot(args[1]):
-        print("ТУТ ЗАПРОС В БД")
+        admin = args[1]
     else:
         await bot.send_message(message.from_user.id, 'Invalid Syntax', reply_markup=keyboards.bot_creator_keyboard)
 
@@ -55,7 +57,7 @@ async def process_three_base_commands(message):
 
 @dp.message_handler(state=states.TwoStates.ADD_SHOP)
 async def process_add_shop_command(message):
-    token = message.text
+    # database.insert(f"INSERT INTO shops (token, admins) VALUES ('{token}', '{message.from_user.id}')")
     await bot.send_message(message.from_user.id, MESSAGES['done'])
     await states.TwoStates.next()
 
