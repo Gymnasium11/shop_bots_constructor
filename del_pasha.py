@@ -1,6 +1,6 @@
-from bot_client import run
+from bot_client_pasha import run
 
-from multiprocessing import Process, cpu_count
+from multiprocessing import Process
 
 tokens = ['1697352371:AAF7wMrG7_mmOCmpfA6_4JzlxJ9WujuAnZU', '1964670988:AAFaHLy14k0x5JKRZ_9L3M0hR9c3vbyBguc']
 
