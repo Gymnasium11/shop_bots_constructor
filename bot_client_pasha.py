@@ -4,19 +4,6 @@ from aiogram.utils import executor
 from database import read
 import telebot
 
-
-
-
-async def test(token):
-    bot = Bot(token=token)
-    bot.get_me()
-
-
-test('1991375151:AAFyjSRYIOA-myrWJEs02u2JuBAtzRzDQoQ')
-
-
-
-
 def run(token):
     bot = Bot(token=token)
     dp = Dispatcher(bot)

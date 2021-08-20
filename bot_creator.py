@@ -1,7 +1,8 @@
-from aiogram import Bot
+from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram import executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from database import read
 
 import states
 import keyboards
@@ -13,8 +14,6 @@ import telebot
 import database
 
 
-
-
 def get_info(token):
     try:
         a = telebot.TeleBot(token).get_me()
@@ -23,10 +22,10 @@ def get_info(token):
     return a.first_name, a.username
 
 
-
 # Создание экземпляров классов Bot и Dispatcher
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
+
 
 
 async def username2id(username):
@@ -62,22 +61,34 @@ async def process_set_admin_command(message):
 
 @dp.message_handler(lambda message: [message.text] in keyboards.bot_creator_keyboard['keyboard'])
 async def process_three_base_commands(message):
-    await bot.send_message(message.from_user.id, MESSAGES[message.text])
     if message.text == 'Добавить магазин':
+        await message.answer(MESSAGES['Добавить магазин'])
         await states.TwoStates.ADD_SHOP.set()
+
+    elif message.text == 'Мои магазины':
+        admin = message.from_user.id
+        rez = read("SELECT * FROM shops;")
+        rez = [i[1] for i in rez if str(admin) in i[3].split()]
+        kb = types.InlineKeyboardMarkup()
+        for i in rez:
+            kb.add(types.InlineKeyboardButton(text=i, callback_data="getInfo_" + i))
+        await message.answer("Мои магазины:", reply_markup=kb)
 
 
 @dp.message_handler(state=states.TwoStates.ADD_SHOP)
 async def process_add_shop_command(message):
     token = message.text
-    first_name, username = get_info(token)
-    database.insert(f"INSERT INTO shops (name, nick_name, token, admins, rating, count_solled) VALUES ('{first_name}', '{username}' ,'{token}', '{message.from_user.id}', '{0}', '{0}')")
-    await bot.send_message(message.from_user.id, MESSAGES['done'])
-    await states.TwoStates.next()
+    if get_info(token):
+        first_name, username = get_info(token)
+        database.insert(
+            f"INSERT INTO shops (name, nick_name, token, admins, rating, count_solled) VALUES ('{first_name}', '{username}' ,'{token}', '{message.from_user.id}', '{0}', '{0}')")
+        await bot.send_message(message.from_user.id, "Бот успешно создан. Enjoy it!")
+        await states.TwoStates.next()
+    else:
+        await bot.send_message(message.from_user.id, "Токен невалиден")
+
+
 
 
 if __name__ == '__main__':
     executor.start_polling(dp)
-
-
-
