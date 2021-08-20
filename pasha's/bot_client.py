@@ -35,6 +35,18 @@ def run(token):
     @dp.message_handler(lambda message: message.text == '📖Каталог')
     async def catalog(message):
         text = "Каталог\n|\n|\n|\n|\n|"
+        # SELECT * FROM shops WHERE
+
+        rez = [('Honey',
+                  'https://medrossii.ru/images/001/%D0%91%D0%B0%D1%88%D0%BA%D0%B8%D1%80%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BC'
+                  '%D0%B5%D0%B4.jpg', 1),
+                 ('Milk', 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Milk_glass.jpg', 2)]
+
+        for i in trash:
+            id = i[2]
+            kb = types.InlineKeyboardMarkup()
+            kb.add(types.InlineKeyboardButton(callback_data=f'futher_{id}', text='Подробнее про знак'))
+            await message.answer_photo(i[1], caption=i[0], reply_markup=kb)
         await message.answer(text)
 
     @dp.message_handler(lambda message: message.text == '🛒Корзина')
@@ -46,7 +58,7 @@ def run(token):
         await message.answer(text, parse_mode='Markdown')
 
         kb = types.InlineKeyboardMarkup(row_width=2)
-        kb.add(types.InlineKeyboardButton(callback_data='nothing', text='Подробнее про знак', ))
+        kb.add(types.InlineKeyboardButton(callback_data='nothing', text='Подробнее про знак'))
         kb.add(types.InlineKeyboardButton(callback_data='nothing', text='назад'))
 
         for i in trash:
@@ -70,9 +82,17 @@ def run(token):
         await message.answer(text)
 
 
+    @dp.callback_query_handler()
+    async def update(query):
+        print(query)
+
+
 
     @dp.message_handler()
     async def echo_message(msg: types.Message):
         await bot.send_message(msg.from_user.id, msg.text)
+
+
+
 
     executor.start_polling(dp)
