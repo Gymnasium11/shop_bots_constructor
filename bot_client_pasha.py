@@ -19,7 +19,8 @@ def run(token):
                'самый товар, который давно искали!' \
                'Либо Вам понравится другой товар!\n' \
                ':)'
-
+        a = await bot.get_me()
+        print(a)
         kb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
         kb.add(types.KeyboardButton('📖Каталог'))
         kb.add(types.KeyboardButton('🛒Корзина'))
