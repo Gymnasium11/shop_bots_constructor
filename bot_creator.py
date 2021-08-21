@@ -4,7 +4,9 @@ from aiogram import executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from database import read
 from asyncio import sleep
+from bot_client_pasha import run
 
+from multiprocessing import Process
 import states
 import pandas
 import keyboards
@@ -14,6 +16,12 @@ from telethon import TelegramClient
 from telethon.tl.functions.users import GetFullUserRequest
 import telebot
 import database
+
+
+def proc(token):
+    p = Process(target=run, args=(token,))
+    p.start()
+    return p
 
 
 def get_info(token):
@@ -92,6 +100,7 @@ async def process_three_base_commands(message):
         kb.add(types.InlineKeyboardButton(text=i, callback_data="getInfo_" + i))
     await message.answer("Мои магазины:", reply_markup=kb)
 
+
 @dp.message_handler(commands=['set_admins'])
 async def process_set_admins_command(message):
     bot_username = message.text.split()[0].strip(' @')
@@ -119,8 +128,10 @@ async def process_add_shop_command(message):
     token = message.text
     if get_info(token):
         first_name, username = get_info(token)
+        proc(token)
         database.insert(
             f"INSERT INTO shops (name, nick_name, token, admins, rating, count_solled) VALUES ('{first_name}', '{username}' ,'{token}', '{message.from_user.id}', '{0}', '{0}')")
+
         await bot.send_message(message.from_user.id, "Бот успешно создан. Enjoy it!")
         await states.TwoStates.next()
     else:

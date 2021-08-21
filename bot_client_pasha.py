@@ -55,8 +55,9 @@ def run(token):
 
     @dp.message_handler(commands=['start'])
     async def start(message):
-        l = [message.from_user.first_name, message.from_user.first_name]
+        l = [message.from_user.first_name, message.from_user.second_name]
         l_n = [i for i in l if i]
+        print('start')
         text = f'{" ".join(l_n)}, Добро ' \
                'пожаловать в магазин «Store» bot!\n' \
                'Дата открытия магазина: 21.08.2021\n' \
@@ -73,7 +74,8 @@ def run(token):
         kb.add(types.KeyboardButton('🎪О магазине'))
         kb.add(types.KeyboardButton('📞Связаться с оператором'))
 
-        admins = read(f"SELECT DISTINCT admins FROM shops WHERE name='{a.username}';")
+        admins = read(f"SELECT admins FROM shops WHERE name='{a.username}';")
+        print(admins, message.from_user.id , str(message.from_user.id) in admins[0][0].split(' '))
         if admins and message.from_user.id and str(message.from_user.id) in admins[0][0].split(' '):
             kb.add(types.KeyboardButton('🛠Загрузить таблицу товаров'))
         await message.answer(text, reply_markup=kb)
