@@ -6,6 +6,7 @@ from database import read
 from asyncio import sleep
 
 import states
+import pandas
 import keyboards
 from config import TOKEN
 from messages import MESSAGES
@@ -78,15 +79,6 @@ async def process_start_command(message):
 @dp.message_handler(commands=['help'])
 async def process_start_command(message):
     await bot.send_message(message.from_user.id, MESSAGES['help'], reply_markup=keyboards.bot_creator_keyboard)
-
-
-@dp.message_handler(commands=['set_admin'])
-async def process_set_admin_command(message):
-    args = [arg.strip('@ ') for arg in message.text.split()[1:]]
-    if await is_bot(args[0]) and not await is_bot(args[1]):
-        admin = args[1]
-    else:
-        await bot.send_message(message.from_user.id, 'Invalid Syntax', reply_markup=keyboards.bot_creator_keyboard)
 
 
 @dp.message_handler(
