@@ -10,6 +10,14 @@ def run(token):
     bot = Bot(token=token)
     dp = Dispatcher(bot)
 
+    @dp.callback_query_handler(lambda call: call.data.startswith('totrash_'))
+    async def update_further(call):
+        pr_id = int(call.data[8:])
+        title = read(f"SELECT name FROM product WHERE id='{pr_id}'")[0][0]
+        await bot.answer_callback_query(
+            call.id,
+            text=f'Вы добавили товар {title} в корзину', show_alert=True)
+
     @dp.message_handler(content_types=['document'])
     async def catalog(message):
         file_info = await bot.get_file(message.document.file_id)
@@ -41,8 +49,8 @@ def run(token):
             text = f'**{title}**\n' + f'*{price}*руб.\n' + short_desc
             await call.message.answer_photo(pict_url, caption=text, reply_markup=kb, parse_mode='markdown')
         kb = types.InlineKeyboardMarkup()
-        kb.add(types.InlineKeyboardButton(callback_data=f'yet5_{st+5}', text='Да'))
-        if len(rez)>=5:
+        kb.add(types.InlineKeyboardButton(callback_data=f'yet5_{st + 5}', text='Да'))
+        if len(rez) >= 5:
             await call.message.answer(text='Показать ещё?', reply_markup=kb)
 
     @dp.message_handler(commands=['start'])
@@ -51,9 +59,9 @@ def run(token):
         l_n = [i for i in l if i]
         text = f'{" ".join(l_n)}, Добро ' \
                'пожаловать в магазин «Store» bot!\n' \
-               'Дата открытия магазина: ХХ.ХХ.ХХ\n' \
-               'Количество категорий: X\n' \
-               'Количество товаров: X\n' \
+               'Дата открытия магазина: 21.08.2021\n' \
+               'Количество категорий: 2\n' \
+               'Количество товаров: 12\n' \
                'Здесь Вы найдете и закажите тот' \
                'самый товар, который давно искали!' \
                'Либо Вам понравится другой товар!\n' \
@@ -80,7 +88,9 @@ def run(token):
     async def catalog(message):
         a = await bot.get_me()
         rez = read(f"SELECT * FROM product WHERE id_shop='{a.username}'")
-
+        if len(rez) == 0:
+            await message.answer(text='Каталог пуст')
+            return
         for i in rez[:min(5, len(rez))]:
             product_id = i[0]
             article = i[2]
@@ -107,8 +117,7 @@ def run(token):
                   'https://medrossii.ru/images/001/%D0%91%D0%B0%D1%88%D0%BA%D0%B8%D1%80%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BC'
                   '%D0%B5%D0%B4.jpg'),
                  ('Milk', 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Milk_glass.jpg')]
-        text = 'Корзина' \
-               '**жирный шрифт** *курсив*'
+        text = '**Корзина**'
 
         await message.answer(text, parse_mode='Markdown')
 
