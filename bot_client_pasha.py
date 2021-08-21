@@ -1,8 +1,9 @@
+import pandas as pd
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 from database import read
-import telebot
+from excel import read_excel
 
 
 def run(token):
@@ -10,16 +11,39 @@ def run(token):
     dp = Dispatcher(bot)
 
     @dp.message_handler(content_types=['document'])
-    def catalog(message):
-        print(message)
-        raw = message.document.file_id
-        path = raw + ".xls"
-        file_info = bot.get_file(raw)
-        downloaded_file = bot.download_file(file_info.file_id)
-        # print(l)
-        with open(path, 'wb') as new_file:
-            new_file.write(downloaded_file)
-        message.answer('nonnnnononon')
+    async def catalog(message):
+        file_info = await bot.get_file(message.document.file_id)
+        downloaded_file = await bot.download_file(file_info.file_path)
+        t = pd.read_excel(downloaded_file)
+        a = await bot.get_me()
+        read_excel(t, a.username)
+        await message.answer("Ваши товары успешно добавлены")
+
+    @dp.callback_query_handler(lambda call: call.data.startswith('yet5_'))
+    async def update_further(call):
+        st = int(call.data[5:])
+        a = await bot.get_me()
+        rez = read(f"SELECT * FROM product WHERE id_shop='{a.username}'")
+        rez = rez[st:]
+        for i in rez[:min(5, len(rez))]:
+            product_id = i[0]
+            article = i[2]
+            title = i[3]
+            price = i[4]
+            cat = i[5]
+            short_desc = i[6]
+            desc = i[7]
+            pict_url = i[8]
+            kb = types.InlineKeyboardMarkup()
+            kb.add(types.InlineKeyboardButton(callback_data=f'further_{product_id}', text='Подробнее'))
+            kb.add(types.InlineKeyboardButton(callback_data=f'totrash_{product_id}', text=f'В корзину',
+                                              parse_mode='markdown'))
+            text = f'**{title}**\n' + f'*{price}*руб.\n' + short_desc
+            await call.message.answer_photo(pict_url, caption=text, reply_markup=kb, parse_mode='markdown')
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(callback_data=f'yet5_{st+5}', text='Да'))
+        if len(rez)>=5:
+            await call.message.answer(text='Показать ещё?', reply_markup=kb)
 
     @dp.message_handler(commands=['start'])
     async def start(message):
@@ -35,7 +59,6 @@ def run(token):
                'Либо Вам понравится другой товар!\n' \
                ':)'
         a = await bot.get_me()
-        print(a)
         kb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
         kb.add(types.KeyboardButton('📖Каталог'))
         kb.add(types.KeyboardButton('🛒Корзина'))
@@ -55,13 +78,11 @@ def run(token):
 
     @dp.message_handler(lambda message: message.text == '📖Каталог')
     async def catalog(message):
-        text = "Каталог"
         a = await bot.get_me()
         rez = read(f"SELECT * FROM product WHERE id_shop='{a.username}'")
-        print(rez)
-        for i in rez:
-            product_id = i[0]
 
+        for i in rez[:min(5, len(rez))]:
+            product_id = i[0]
             article = i[2]
             title = i[3]
             price = i[4]
@@ -71,9 +92,14 @@ def run(token):
             pict_url = i[8]
             kb = types.InlineKeyboardMarkup()
             kb.add(types.InlineKeyboardButton(callback_data=f'further_{product_id}', text='Подробнее'))
-            kb.add(types.InlineKeyboardButton(callback_data=f'totrash_{product_id}', text='В корзину'))
-            text = f'**{title}**\n' + short_desc
+            kb.add(types.InlineKeyboardButton(callback_data=f'totrash_{product_id}', text=f'В корзину',
+                                              parse_mode='markdown'))
+            text = f'**{title}**\n' + f'*{price}*руб.\n' + short_desc
             await message.answer_photo(pict_url, caption=text, reply_markup=kb, parse_mode='markdown')
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(callback_data=f'yet5_5', text='Да'))
+        if len(rez) >= 5:
+            await message.answer(text='Показать ещё?', reply_markup=kb)
 
     @dp.message_handler(lambda message: message.text == '🛒Корзина')
     async def trash(message):
@@ -116,26 +142,43 @@ def run(token):
     async def update_further(call):
         d = call.data
         id = int(d.split('_')[1])
+
         kb = types.InlineKeyboardMarkup()
+        rez = read(f"SELECT price, description, name title FROM product WHERE id='{id}';")
+        rez = rez[0]
+        price = rez[0]
+        desc = rez[1]
+        title = rez[2]
+        text = f'**{title}**\n' + f'*{price}*руб.\n' + desc
         kb.add(types.InlineKeyboardButton(callback_data=f'fromfurther_{id}', text='Назад'))
-        kb.add(types.InlineKeyboardButton(callback_data=f'totrash_{id}', text='В корзину'))
+        kb.add(types.InlineKeyboardButton(callback_data=f'totrash_{id}', text=f'В корзину'))
         await bot.edit_message_caption(
+            caption=text,
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            reply_markup=kb
+            reply_markup=kb,
+            parse_mode='markdown'
         )
 
     @dp.callback_query_handler(lambda call: call.data.startswith('fromfurther'))
     async def update_from_futher(call):
         d = call.data
         id = int(d.split('_')[1])
+        rez = read(f"SELECT price, short_description, name title FROM product WHERE id='{id}';")
+        rez = rez[0]
+        price = rez[0]
+        short_desc = rez[1]
+        title = rez[2]
+        text = f'**{title}**\n' + f'*{price}*руб.\n' + short_desc
         kb = types.InlineKeyboardMarkup()
         kb.add(types.InlineKeyboardButton(callback_data=f'further_{id}', text='Подробнее'))
         kb.add(types.InlineKeyboardButton(callback_data=f'totrash_{id}', text='В корзину'))
         await bot.edit_message_caption(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            reply_markup=kb
+            reply_markup=kb,
+            caption=text,
+            parse_mode='markdown'
         )
 
     @dp.message_handler()
