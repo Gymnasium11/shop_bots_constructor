@@ -92,6 +92,18 @@ async def process_three_base_commands(message):
         kb.add(types.InlineKeyboardButton(text=i, callback_data="getInfo_" + i))
     await message.answer("Мои магазины:", reply_markup=kb)
 
+@dp.message_handler(commands=['set_admins'])
+async def process_set_admins_command(message):
+    bot_username = message.text.split()[0].strip(' @')
+    admins_usernames = [adm.strip(' @') for adm in message.text.split()[1:]]
+    if bot_username and admins_usernames:
+        if is_bot(bot_username) and not is_bot(admins_usernames[0]):
+            await message.answer("Админы добавлены", reply_markup=keyboards.bot_creator_keyboard)
+        else:
+            await message.answer("Ошибка в синтаксисе команды", reply_markup=keyboards.bot_creator_keyboard)
+    else:
+        await message.answer("Минимальное кол-во аргументов - 2", reply_markup=keyboards.bot_creator_keyboard)
+
 
 @dp.message_handler(lambda message: [message.text] in keyboards.bot_creator_keyboard['keyboard'])
 async def process_three_base_commands(message):
